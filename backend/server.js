@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const YouTube = require('youtube-sr').default;
-const { raw: ytdlRaw } = require('yt-dlp-exec');
+const youtubedl = require('youtube-dl-exec');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,7 +14,7 @@ app.get('/', (req, res) => {
   res.send('Music Streaming Backend is running!');
 });
 
-// 1. API ค้นหาเพลง (รองรับเพลงไทย 100% ไม่ต้องใช้ Key)
+// 1. ค้นหาเพลงไทยได้ทุกเพลง (ไม่ต้องใช้ API Key)
 app.get('/api/search', async (req, res) => {
   try {
     const query = req.query.q;
@@ -36,32 +36,33 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
-// 2. API สตรีมเสียงสด (Stream Pipe ผ่าน yt-dlp เลี่ยง Error 150)
+// 2. สตรีมเสียงสด (Stream Pipe ตรงผ่าน yt-dlp เลี่ยง Error 150)
 app.get('/api/stream', (req, res) => {
   const videoId = req.query.id;
   if (!videoId) return res.status(400).send('Missing video ID');
 
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
-  // ตั้งค่า Header เสียงสำหรับเบราว์เซอร์
   res.setHeader('Content-Type', 'audio/webm');
   res.setHeader('Transfer-Encoding', 'chunked');
 
-  // สตรีมเฉพาะเสียงแบบ Chunked stream ส่งตรงเข้าแท็ก <audio>
-  const streamProcess = ytdlRaw(
-    videoUrl,
-    {
-      format: 'bestaudio',
-      output: '-',
-      quiet: true
-    },
-    { stdio: ['ignore', 'pipe', 'ignore'] }
-  );
+  const subprocess = youtubedl.exec(videoUrl, {
+    format: 'bestaudio',
+    output: '-'
+  });
 
-  streamProcess.stdout.pipe(res);
+  if (subprocess.stdout) {
+    subprocess.stdout.pipe(res);
+  }
 
   req.on('close', () => {
-    streamProcess.kill();
+    try {
+      subprocess.kill();
+    } catch (e) {}
+  });
+
+  subprocess.on('error', (err) => {
+    console.error('Streaming error:', err);
   });
 });
 
