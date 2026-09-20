@@ -6,7 +6,7 @@
   <title>YouTube Music Clone</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts (Prompt & Kanit) -->
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -58,7 +58,7 @@
       </div>
     </header>
 
-    <!-- Filter Mood Chips (เลื่อนแนวนอน) -->
+    <!-- Filter Mood Chips -->
     <div class="flex gap-2 px-4 py-2 overflow-x-auto no-scrollbar">
       <button class="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-[#212121] hover:bg-[#303030] text-gray-200 whitespace-nowrap transition">กระปรี้กระเปร่า</button>
       <button class="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-[#212121] hover:bg-[#303030] text-gray-200 whitespace-nowrap transition">รู้สึกดี</button>
@@ -79,7 +79,7 @@
 
       <!-- Grid 3x3 Cards -->
       <div id="quick-picks-grid" class="grid grid-cols-3 gap-3">
-        <!-- การ์ดเพลงจะถูกสร้างอัตโนมัติจาก JavaScript -->
+        <!-- Cards injected by JS -->
       </div>
 
       <!-- Pagination Dots -->
@@ -96,24 +96,22 @@
         <h2 class="text-xl font-bold tracking-tight">คัดสรรมาแล้ว</h2>
         <button class="text-xs text-gray-400 hover:text-white px-2.5 py-1 rounded-full border border-gray-700">เล่นทั้งหมด</button>
       </div>
-      <div id="curated-list" class="flex flex-col gap-2">
-        <!-- รายการเพลงเสริม -->
-      </div>
+      <div id="curated-list" class="flex flex-col gap-2"></div>
     </section>
 
-    <!-- Hidden YouTube Player Container (ซ่อนวิดีโอไว้เบื้องหลังเพื่อเล่นเฉพาะเสียง) -->
-    <div class="hidden">
+    <!-- YouTube Player Container (ซ่อนแบบ Off-screen เพื่อให้เบราว์เซอร์ยอมให้เล่นเสียง) -->
+    <div style="position: fixed; top: -9999px; left: -9999px; width: 200px; height: 200px; opacity: 0; pointer-events: none;">
       <div id="youtube-player"></div>
     </div>
 
-    <!-- Floating Mini Player (แถบควบคุมเพลงด้านล่าง) -->
+    <!-- Floating Mini Player -->
     <div id="mini-player" class="fixed bottom-[54px] left-1/2 -translate-x-1/2 w-full max-w-md px-3 z-40">
       <div class="bg-[#212121] rounded-lg p-2 flex items-center justify-between shadow-2xl border border-white/5 backdrop-blur-md">
         <div class="flex items-center gap-3 overflow-hidden cursor-pointer" id="mini-player-info">
           <img id="player-thumb" src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=100&auto=format&fit=crop" class="w-10 h-10 rounded object-cover flex-shrink-0" alt="Cover"/>
           <div class="overflow-hidden">
-            <h4 id="player-title" class="text-sm font-semibold text-white line-clamp-1">ยังไม่ได้เลือกเพลง</h4>
-            <p id="player-artist" class="text-xs text-gray-400 line-clamp-1">แตะที่การ์ดเพลงเพื่อเริ่มสตรีม</p>
+            <h4 id="player-title" class="text-sm font-semibold text-white line-clamp-1">เลือกเพลงเพื่อฟัง</h4>
+            <p id="player-artist" class="text-xs text-gray-400 line-clamp-1">แตะการ์ดเพลงด้านบน</p>
           </div>
         </div>
         <div class="flex items-center gap-2 pl-2">
@@ -125,7 +123,7 @@
           </button>
         </div>
       </div>
-      <!-- Progress Bar บางๆ ใต้ Mini Player -->
+      <!-- Progress Bar -->
       <div class="w-full bg-gray-700 h-[2px] mt-0.5 rounded-full overflow-hidden">
         <div id="player-progress" class="bg-red-500 h-full w-0 transition-all duration-300"></div>
       </div>
@@ -163,35 +161,48 @@
   <script src="https://www.youtube.com/iframe_api"></script>
 
   <script>
-    // ข้อมูลเพลงตัวอย่าง (ใช้ Video ID จาก YouTube เพื่อสตรีมเสียงจริง)
+    // รายการเพลงที่เปิดสิทธิ์ Embed นอก YouTube ได้ 100% (เช่น NCS และดนตรีฟังสบาย)
     const songs = [
-      { id: 'jfKfPfyJRdk', title: 'Lofi Hip Hop Chill Beats', artist: 'Lofi Girl', cover: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=300&auto=format&fit=crop' },
-      { id: '5qap5aO4i9A', title: 'lofi hip hop radio - beats to study', artist: 'ChilledCow', cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop' },
-      { id: 'DWcJFNfaw9c', title: 'Wish (Acoustic Version)', artist: 'Depapepe', cover: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=300&auto=format&fit=crop' },
-      { id: '2Vv-BfVoq4g', title: 'Ed Sheeran - Perfect', artist: 'Ed Sheeran', cover: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&auto=format&fit=crop' },
-      { id: 'fJ9rUzIMcZQ', title: 'Queen - Bohemian Rhapsody', artist: 'Queen', cover: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&auto=format&fit=crop' },
-      { id: 'kXYiU_JCYtU', title: 'Numb (Official Music Video)', artist: 'Linkin Park', cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop' },
-      { id: 'JGwWNGJdvx8', title: 'Ed Sheeran - Shape of You', artist: 'Ed Sheeran', cover: 'https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=300&auto=format&fit=crop' },
-      { id: 'hT_nvWreIhg', title: 'Counting Stars', artist: 'OneRepublic', cover: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=300&auto=format&fit=crop' },
-      { id: '09R8_2nJtjg', title: 'Maroon 5 - Sugar', artist: 'Maroon 5', cover: 'https://images.unsplash.com/photo-1520523839898-5071282543e2?w=300&auto=format&fit=crop' }
+      { id: 'K4DyBUG242c', title: 'Cartoon - On & On (feat. Daniel Levi)', artist: 'NCS Release', cover: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=300&auto=format&fit=crop' },
+      { id: 'p7ZsBPK656s', title: 'Alan Walker - Spectre', artist: 'NCS Release', cover: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&auto=format&fit=crop' },
+      { id: '3nQNiWdeH2Q', title: 'Janji - Heroes Tonight (feat. Johnning)', artist: 'NCS Release', cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop' },
+      { id: 'DWcJFNfaw9c', title: 'Wish (Acoustic Guitar)', artist: 'Depapepe', cover: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=300&auto=format&fit=crop' },
+      { id: 'bM7SZ5SBzyY', title: 'Elektronomia - Sky High', artist: 'NCS Release', cover: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&auto=format&fit=crop' },
+      { id: 'J2X5mJ3HDYE', title: 'DEAF KEV - Invincible', artist: 'NCS Release', cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop' },
+      { id: 'TW9d8vYrVFQ', title: 'Different Heaven & EH!DE - My Heart', artist: 'NCS Release', cover: 'https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=300&auto=format&fit=crop' },
+      { id: 'AOeY-nDp7hI', title: 'Disfigure - Blank', artist: 'NCS Release', cover: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=300&auto=format&fit=crop' },
+      { id: 'S19UcWdOA-I', title: 'Tobu - Hope', artist: 'NCS Release', cover: 'https://images.unsplash.com/photo-1520523839898-5071282543e2?w=300&auto=format&fit=crop' }
     ];
 
     let player;
+    let isPlayerReady = false;
     let isPlaying = false;
     let currentSongIndex = -1;
+    let pendingSongId = null;
 
-    // เตรียมตัวเล่น YouTube IFrame Player
+    // เริ่มต้นตัวเล่น YouTube IFrame Player
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('youtube-player', {
-        height: '0',
-        width: '0',
+        height: '200',
+        width: '200',
         playerVars: {
+          autoplay: 1,
           playsinline: 1,
           controls: 0,
-          disablekb: 1
+          rel: 0,
+          origin: window.location.origin
         },
         events: {
-          'onStateChange': onPlayerStateChange
+          'onReady': () => {
+            isPlayerReady = true;
+            if (pendingSongId) {
+              player.loadVideoById(pendingSongId);
+              player.playVideo();
+              pendingSongId = null;
+            }
+          },
+          'onStateChange': onPlayerStateChange,
+          'onError': onPlayerError
         }
       });
     }
@@ -208,7 +219,14 @@
       lucide.createIcons();
     }
 
-    // ฟังก์ชันเล่นเพลง
+    function onPlayerError(event) {
+      console.error('YouTube Player Error:', event.data);
+      if (event.data === 150 || event.data === 101) {
+        alert('เพลงนี้เจ้าของลิขสิทธิ์ไม่อนุญาตให้เล่นบนเว็บภายนอกครับ (Error 150) กรุณาลองเลือกเพลงอื่น');
+      }
+    }
+
+    // ฟังก์ชันเล่นเพลงเมื่อผู้ใช้คลิก
     function playSong(index) {
       currentSongIndex = index;
       const song = songs[index];
@@ -217,15 +235,18 @@
       document.getElementById('player-title').innerText = song.title;
       document.getElementById('player-artist').innerText = song.artist;
 
-      if (player && player.loadVideoById) {
+      if (isPlayerReady && player && player.loadVideoById) {
         player.loadVideoById(song.id);
         player.playVideo();
+      } else {
+        pendingSongId = song.id;
       }
     }
 
     // สลับ Play / Pause
-    document.getElementById('play-pause-btn').addEventListener('click', () => {
-      if (!player) return;
+    document.getElementById('play-pause-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!isPlayerReady || !player) return;
       if (isPlaying) {
         player.pauseVideo();
       } else {
@@ -236,6 +257,18 @@
         }
       }
     });
+
+    // อัปเดต Progress Bar
+    setInterval(() => {
+      if (isPlayerReady && player && isPlaying && player.getCurrentTime && player.getDuration) {
+        const currentTime = player.getCurrentTime();
+        const duration = player.getDuration();
+        if (duration > 0) {
+          const percent = (currentTime / duration) * 100;
+          document.getElementById('player-progress').style.width = percent + '%';
+        }
+      }
+    }, 500);
 
     // แสดงการ์ดเพลงตาราง 3x3
     const gridContainer = document.getElementById('quick-picks-grid');
@@ -256,7 +289,6 @@
       gridContainer.appendChild(card);
     });
 
-    // เริ่มต้นไอคอน Lucide
     lucide.createIcons();
   </script>
 </body>
