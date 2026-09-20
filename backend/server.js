@@ -9,12 +9,11 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// เช็คสถานะเซิร์ฟเวอร์
 app.get('/', (req, res) => {
   res.send('Music Streaming Backend is running!');
 });
 
-// 1. ค้นหาเพลงไทยได้ทุกเพลง (ไม่ต้องใช้ API Key)
+// 1. API ค้นหาเพลง
 app.get('/api/search', async (req, res) => {
   try {
     const query = req.query.q;
@@ -36,23 +35,37 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
-// 2. สตรีมเสียงสด (Stream Pipe ตรงผ่าน yt-dlp เลี่ยง Error 150)
+// 2. API สตรีมเสียง (ใช้ Android Client เลี่ยงบอท และรองรับทั้ง WebM / M4A)
 app.get('/api/stream', (req, res) => {
   const videoId = req.query.id;
   if (!videoId) return res.status(400).send('Missing video ID');
 
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  console.log(`[Stream Request] Starting stream for: ${videoId}`);
 
-  res.setHeader('Content-Type', 'audio/webm');
+  // รองรับ audio/mp4 และ audio/webm
+  res.setHeader('Content-Type', 'audio/mp4');
   res.setHeader('Transfer-Encoding', 'chunked');
+  res.setHeader('Accept-Ranges', 'bytes');
 
+  // เรียกใช้ yt-dlp พร้อม flags พิเศษสำหรับ Server
   const subprocess = youtubedl.exec(videoUrl, {
-    format: 'bestaudio',
-    output: '-'
+    format: '140/bestaudio[ext=m4a]/bestaudio', // ดึง m4a ซึ่งเสถียรที่สุดในเบราว์เซอร์
+    output: '-',
+    extractorArgs: 'youtube:player_client=android', // ป้องกันการตรวจจับบอทบน Cloud IP
+    noCheckCertificates: true,
+    noWarnings: true
   });
 
   if (subprocess.stdout) {
     subprocess.stdout.pipe(res);
+  }
+
+  // ดักจับ Log เพื่อเช็คปัญหาใน Render Logs
+  if (subprocess.stderr) {
+    subprocess.stderr.on('data', (data) => {
+      console.error(`yt-dlp stderr: ${data.toString()}`);
+    });
   }
 
   req.on('close', () => {
@@ -62,7 +75,7 @@ app.get('/api/stream', (req, res) => {
   });
 
   subprocess.on('error', (err) => {
-    console.error('Streaming error:', err);
+    console.error('Subprocess error:', err);
   });
 });
 
