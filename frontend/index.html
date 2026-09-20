@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>YouTube Music Clone</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts (Prompt & Kanit) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      font-family: 'Prompt', sans-serif;
+      background-color: #030303;
+      color: #ffffff;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .line-clamp-1 {
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body class="flex justify-center min-h-screen bg-black">
+
+  <!-- Mobile Frame Container -->
+  <div class="relative w-full max-w-md bg-[#030303] min-h-screen pb-32 flex flex-col shadow-2xl overflow-x-hidden">
+
+    <!-- Top Header -->
+    <header class="sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-[#030303]/90 backdrop-blur-md">
+      <div class="flex items-center gap-1.5">
+        <div class="flex items-center justify-center w-7 h-7 bg-red-600 rounded-full text-white">
+          <i data-lucide="play" class="w-3.5 h-3.5 fill-white ml-0.5"></i>
+        </div>
+        <span class="text-xl font-bold tracking-tight">Music</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="relative">
+          <i data-lucide="bell" class="w-6 h-6 text-gray-200"></i>
+          <span class="absolute -top-1 -right-1 bg-red-600 text-[10px] font-bold px-1.5 py-0.2 rounded-full">2</span>
+        </div>
+        <div class="w-7 h-7 rounded-full bg-emerald-600 overflow-hidden border border-gray-700">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop" class="w-full h-full object-cover" alt="Avatar"/>
+        </div>
+      </div>
+    </header>
+
+    <!-- Filter Mood Chips (เลื่อนแนวนอน) -->
+    <div class="flex gap-2 px-4 py-2 overflow-x-auto no-scrollbar">
+      <button class="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-[#212121] hover:bg-[#303030] text-gray-200 whitespace-nowrap transition">กระปรี้กระเปร่า</button>
+      <button class="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-[#212121] hover:bg-[#303030] text-gray-200 whitespace-nowrap transition">รู้สึกดี</button>
+      <button class="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-[#212121] hover:bg-[#303030] text-gray-200 whitespace-nowrap transition">ผ่อนคลาย</button>
+      <button class="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-[#212121] hover:bg-[#303030] text-gray-200 whitespace-nowrap transition">ออกกำลังกาย</button>
+      <button class="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-[#212121] hover:bg-[#303030] text-gray-200 whitespace-nowrap transition">มีสมาธิ</button>
+    </div>
+
+    <!-- Quick Picks Section (โทรด่วน) -->
+    <section class="mt-4 px-4">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-5 h-5 rounded-full overflow-hidden">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop" class="w-full h-full object-cover" alt="User"/>
+        </div>
+        <span class="text-xs text-gray-400 uppercase tracking-wide">NAT189</span>
+      </div>
+      <h2 class="text-2xl font-bold tracking-tight mb-3">โทรด่วน</h2>
+
+      <!-- Grid 3x3 Cards -->
+      <div id="quick-picks-grid" class="grid grid-cols-3 gap-3">
+        <!-- การ์ดเพลงจะถูกสร้างอัตโนมัติจาก JavaScript -->
+      </div>
+
+      <!-- Pagination Dots -->
+      <div class="flex justify-center items-center gap-1.5 mt-4">
+        <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+        <div class="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
+        <div class="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
+      </div>
+    </section>
+
+    <!-- Curated Section (คัดสรรมาแล้ว) -->
+    <section class="mt-8 px-4">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-xl font-bold tracking-tight">คัดสรรมาแล้ว</h2>
+        <button class="text-xs text-gray-400 hover:text-white px-2.5 py-1 rounded-full border border-gray-700">เล่นทั้งหมด</button>
+      </div>
+      <div id="curated-list" class="flex flex-col gap-2">
+        <!-- รายการเพลงเสริม -->
+      </div>
+    </section>
+
+    <!-- Hidden YouTube Player Container (ซ่อนวิดีโอไว้เบื้องหลังเพื่อเล่นเฉพาะเสียง) -->
+    <div class="hidden">
+      <div id="youtube-player"></div>
+    </div>
+
+    <!-- Floating Mini Player (แถบควบคุมเพลงด้านล่าง) -->
+    <div id="mini-player" class="fixed bottom-[54px] left-1/2 -translate-x-1/2 w-full max-w-md px-3 z-40">
+      <div class="bg-[#212121] rounded-lg p-2 flex items-center justify-between shadow-2xl border border-white/5 backdrop-blur-md">
+        <div class="flex items-center gap-3 overflow-hidden cursor-pointer" id="mini-player-info">
+          <img id="player-thumb" src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=100&auto=format&fit=crop" class="w-10 h-10 rounded object-cover flex-shrink-0" alt="Cover"/>
+          <div class="overflow-hidden">
+            <h4 id="player-title" class="text-sm font-semibold text-white line-clamp-1">ยังไม่ได้เลือกเพลง</h4>
+            <p id="player-artist" class="text-xs text-gray-400 line-clamp-1">แตะที่การ์ดเพลงเพื่อเริ่มสตรีม</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 pl-2">
+          <button class="p-1.5 text-gray-300 hover:text-white transition">
+            <i data-lucide="cast" class="w-5 h-5"></i>
+          </button>
+          <button id="play-pause-btn" class="p-1.5 text-white transition">
+            <i id="play-pause-icon" data-lucide="play" class="w-6 h-6 fill-white"></i>
+          </button>
+        </div>
+      </div>
+      <!-- Progress Bar บางๆ ใต้ Mini Player -->
+      <div class="w-full bg-gray-700 h-[2px] mt-0.5 rounded-full overflow-hidden">
+        <div id="player-progress" class="bg-red-500 h-full w-0 transition-all duration-300"></div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-[#101010]/95 border-t border-white/5 py-1.5 px-3 z-50 flex justify-around items-center backdrop-blur-lg">
+      <button class="flex flex-col items-center text-white gap-1">
+        <i data-lucide="home" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium">หน้าแรก</span>
+      </button>
+      <button class="flex flex-col items-center text-gray-400 hover:text-white gap-1">
+        <i data-lucide="compass" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium">ลองฟัง</span>
+      </button>
+      <button class="flex flex-col items-center text-gray-400 hover:text-white gap-1">
+        <i data-lucide="search" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium">ค้นหา</span>
+      </button>
+      <button class="flex flex-col items-center text-gray-400 hover:text-white gap-1">
+        <i data-lucide="library" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium">คลังเพลง</span>
+      </button>
+      <button class="flex flex-col items-center text-gray-400 hover:text-white gap-1">
+        <div class="w-5 h-5 rounded-full border border-gray-400 flex items-center justify-center">
+          <i data-lucide="play" class="w-2.5 h-2.5 fill-gray-400"></i>
+        </div>
+        <span class="text-[10px] font-medium">อัปเกรด</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- YouTube IFrame API Script -->
+  <script src="https://www.youtube.com/iframe_api"></script>
+
+  <script>
+    // ข้อมูลเพลงตัวอย่าง (ใช้ Video ID จาก YouTube เพื่อสตรีมเสียงจริง)
+    const songs = [
+      { id: 'jfKfPfyJRdk', title: 'Lofi Hip Hop Chill Beats', artist: 'Lofi Girl', cover: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=300&auto=format&fit=crop' },
+      { id: '5qap5aO4i9A', title: 'lofi hip hop radio - beats to study', artist: 'ChilledCow', cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop' },
+      { id: 'DWcJFNfaw9c', title: 'Wish (Acoustic Version)', artist: 'Depapepe', cover: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=300&auto=format&fit=crop' },
+      { id: '2Vv-BfVoq4g', title: 'Ed Sheeran - Perfect', artist: 'Ed Sheeran', cover: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&auto=format&fit=crop' },
+      { id: 'fJ9rUzIMcZQ', title: 'Queen - Bohemian Rhapsody', artist: 'Queen', cover: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&auto=format&fit=crop' },
+      { id: 'kXYiU_JCYtU', title: 'Numb (Official Music Video)', artist: 'Linkin Park', cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop' },
+      { id: 'JGwWNGJdvx8', title: 'Ed Sheeran - Shape of You', artist: 'Ed Sheeran', cover: 'https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=300&auto=format&fit=crop' },
+      { id: 'hT_nvWreIhg', title: 'Counting Stars', artist: 'OneRepublic', cover: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=300&auto=format&fit=crop' },
+      { id: '09R8_2nJtjg', title: 'Maroon 5 - Sugar', artist: 'Maroon 5', cover: 'https://images.unsplash.com/photo-1520523839898-5071282543e2?w=300&auto=format&fit=crop' }
+    ];
+
+    let player;
+    let isPlaying = false;
+    let currentSongIndex = -1;
+
+    // เตรียมตัวเล่น YouTube IFrame Player
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('youtube-player', {
+        height: '0',
+        width: '0',
+        playerVars: {
+          playsinline: 1,
+          controls: 0,
+          disablekb: 1
+        },
+        events: {
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+
+    function onPlayerStateChange(event) {
+      const playIcon = document.getElementById('play-pause-icon');
+      if (event.data === YT.PlayerState.PLAYING) {
+        isPlaying = true;
+        playIcon.setAttribute('data-lucide', 'pause');
+      } else {
+        isPlaying = false;
+        playIcon.setAttribute('data-lucide', 'play');
+      }
+      lucide.createIcons();
+    }
+
+    // ฟังก์ชันเล่นเพลง
+    function playSong(index) {
+      currentSongIndex = index;
+      const song = songs[index];
+      
+      document.getElementById('player-thumb').src = song.cover;
+      document.getElementById('player-title').innerText = song.title;
+      document.getElementById('player-artist').innerText = song.artist;
+
+      if (player && player.loadVideoById) {
+        player.loadVideoById(song.id);
+        player.playVideo();
+      }
+    }
+
+    // สลับ Play / Pause
+    document.getElementById('play-pause-btn').addEventListener('click', () => {
+      if (!player) return;
+      if (isPlaying) {
+        player.pauseVideo();
+      } else {
+        if (currentSongIndex === -1) {
+          playSong(0);
+        } else {
+          player.playVideo();
+        }
+      }
+    });
+
+    // แสดงการ์ดเพลงตาราง 3x3
+    const gridContainer = document.getElementById('quick-picks-grid');
+    songs.forEach((song, index) => {
+      const card = document.createElement('div');
+      card.className = "cursor-pointer group flex flex-col";
+      card.innerHTML = `
+        <div class="relative w-full aspect-square rounded-lg overflow-hidden mb-1.5 bg-[#181818]">
+          <img src="${song.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" alt="${song.title}"/>
+          <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+            <i data-lucide="play" class="w-6 h-6 text-white fill-white"></i>
+          </div>
+        </div>
+        <h3 class="text-xs font-medium text-white line-clamp-1">${song.title}</h3>
+        <p class="text-[10px] text-gray-400 line-clamp-1">${song.artist}</p>
+      `;
+      card.addEventListener('click', () => playSong(index));
+      gridContainer.appendChild(card);
+    });
+
+    // เริ่มต้นไอคอน Lucide
+    lucide.createIcons();
+  </script>
+</body>
+</html>
