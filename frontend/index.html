@@ -32,12 +32,6 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
-    .line-clamp-2 {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
   </style>
 </head>
 <body class="flex justify-center min-h-screen bg-black select-none">
@@ -105,12 +99,12 @@
       </section>
     </main>
 
-    <!-- ==================== TAB 2: ค้นหา (SEARCH) ==================== -->
+    <!-- ==================== TAB 2: ค้นหา (SEARCH - ไร้ API KEY) ==================== -->
     <main id="tab-search" class="tab-content hidden flex-col px-4 pt-2">
       <!-- Search Box Input -->
       <div class="relative flex items-center mb-3">
         <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none"></i>
-        <input id="search-input" type="text" placeholder="ค้นหาเพลง, ศิลปิน หรือ วางลิงก์ YouTube..." 
+        <input id="search-input" type="text" placeholder="พิมพ์ชื่อเพลง ศิลปิน หรือวางลิงก์ YouTube..." 
                class="w-full pl-10 pr-10 py-2.5 bg-[#212121] rounded-lg text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white"
                onkeypress="if(event.key === 'Enter') handleSearch()" />
         <button id="search-clear-btn" onclick="clearSearch()" class="hidden absolute right-3 text-gray-400 hover:text-white">
@@ -118,31 +112,13 @@
         </button>
       </div>
 
-      <!-- Quick Action: Direct URL / Video ID -->
-      <div class="bg-[#181818] p-3 rounded-lg border border-gray-800 mb-4">
-        <h4 class="text-xs font-semibold text-gray-300 mb-1 flex items-center gap-1.5">
-          <i data-lucide="link" class="w-3.5 h-3.5 text-red-500"></i> เล่นด่วนจากลิงก์ YouTube
-        </h4>
-        <p class="text-[11px] text-gray-400 mb-2">วางลิงก์ เช่น <span class="text-gray-300">https://youtu.be/...</span> ลงในช่องค้นหาแล้วกด Enter</p>
-        <button onclick="handleSearch()" class="w-full py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-medium transition">
-          ค้นหา / เล่นทันที
-        </button>
-      </div>
-
-      <!-- Optional: YouTube API Key Setting -->
-      <div class="mb-4">
-        <button onclick="toggleApiKeyInput()" class="text-[11px] text-gray-400 hover:text-white flex items-center gap-1 underline">
-          <i data-lucide="key" class="w-3 h-3"></i> ตั้งค่า YouTube Data API Key (สำหรับการค้นหาแบบ Real-time)
-        </button>
-        <div id="api-key-container" class="hidden mt-2 p-2.5 bg-[#141414] rounded border border-gray-800">
-          <input id="yt-api-key" type="password" placeholder="ใส่ YouTube Data API v3 Key ที่นี่" class="w-full px-2.5 py-1.5 bg-[#202020] rounded text-xs text-white mb-2 focus:outline-none" />
-          <button onclick="saveApiKey()" class="px-3 py-1 bg-white text-black text-xs font-semibold rounded">บันทึก Key</button>
-        </div>
-      </div>
+      <button onclick="handleSearch()" class="w-full py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold mb-4 transition flex items-center justify-center gap-1.5">
+        <i data-lucide="search" class="w-3.5 h-3.5"></i> ค้นหาเพลงทันที (ไม่ต้องใช้ API Key)
+      </button>
 
       <!-- Search Results List -->
       <div id="search-results" class="flex flex-col gap-2 pb-10">
-        <p class="text-xs text-gray-500 text-center py-6">พิมพ์ชื่อเพลง หรือวางลิงก์ YouTube เพื่อเริ่มค้นหา</p>
+        <p class="text-xs text-gray-500 text-center py-8">พิมพ์ชื่อเพลงที่ต้องการฟัง แล้วกดปุ่มค้นหาได้เลยครับ</p>
       </div>
     </main>
 
@@ -150,7 +126,7 @@
     <main id="tab-library" class="tab-content hidden flex-col px-4 pt-4">
       <h2 class="text-2xl font-bold tracking-tight mb-4">คลังเพลงของคุณ</h2>
       <h3 class="text-sm font-semibold text-gray-300 mb-2 flex items-center gap-1.5">
-        <i data-lucide="history" class="w-4 h-4 text-red-500"></i> เพลงที่เพิ่งฟังล่าสุด
+        <i data-lucide="history" class="w-4 h-4 text-red-500"></i> ประวัติเพลงที่ฟังล่าสุด
       </h3>
       <div id="library-recent-list" class="flex flex-col gap-2 pb-10">
         <p class="text-xs text-gray-500 py-4">ยังไม่มีประวัติการฟังเพลง</p>
@@ -190,10 +166,8 @@
         <button onclick="closeFullPlayer()" class="p-2 text-gray-400 hover:text-white">
           <i data-lucide="chevron-down" class="w-6 h-6"></i>
         </button>
-        <span class="text-xs font-semibold uppercase tracking-widest text-gray-400">กำลังเล่นจาก YouTube</span>
-        <button class="p-2 text-gray-400 hover:text-white">
-          <i data-lucide="more-vertical" class="w-5 h-5"></i>
-        </button>
+        <span class="text-xs font-semibold uppercase tracking-widest text-gray-400">กำลังเล่นเพลง</span>
+        <div class="w-6"></div>
       </div>
 
       <div class="flex flex-col items-center my-auto">
@@ -249,7 +223,6 @@
   <script src="https://www.youtube.com/iframe_api"></script>
 
   <script>
-    // ข้อมูลเพลงแบ่งตามหมวดหมู่อารมณ์ (ใช้เพลงปลอดลิขสิทธิ์ Embed นอกเว็บได้ 100%)
     const allSongData = {
       energetic: [
         { id: 'bM7SZ5SBzyY', title: 'Sky High', artist: 'Elektronomia', cover: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&auto=format&fit=crop' },
@@ -279,7 +252,6 @@
     let isPlaying = false;
     let recentHistory = JSON.parse(localStorage.getItem('yt_music_history') || '[]');
 
-    // ==================== YOUTUBE IFRAME API ====================
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('youtube-player', {
         height: '200',
@@ -318,19 +290,16 @@
       if (!song || !song.id) return;
       currentSong = song;
 
-      // บันทึกลงประวัติ (Recent History)
       recentHistory = recentHistory.filter(item => item.id !== song.id);
       recentHistory.unshift(song);
       if (recentHistory.length > 20) recentHistory.pop();
       localStorage.setItem('yt_music_history', JSON.stringify(recentHistory));
       renderLibrary();
 
-      // อัปเดต Mini Player
       document.getElementById('player-thumb').src = song.cover;
       document.getElementById('player-title').innerText = song.title;
       document.getElementById('player-artist').innerText = song.artist;
 
-      // อัปเดต Full Player
       document.getElementById('full-player-thumb').src = song.cover;
       document.getElementById('full-player-title').innerText = song.title;
       document.getElementById('full-player-artist').innerText = song.artist;
@@ -381,7 +350,6 @@
       player.seekTo(targetSec, true);
     }
 
-    // Timer Update Progress
     setInterval(() => {
       if (isPlayerReady && player && isPlaying && player.getCurrentTime && player.getDuration) {
         const cur = player.getCurrentTime();
@@ -402,7 +370,6 @@
       return `${m}:${s < 10 ? '0' : ''}${s}`;
     }
 
-    // ==================== TAB SWITCHING ====================
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
       document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -419,31 +386,31 @@
       lucide.createIcons();
     }
 
-    // ==================== SEARCH & URL PARSING ====================
     function extractYouTubeId(url) {
       const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
       const match = url.match(regExp);
       return (match && match[2].length === 11) ? match[2] : null;
     }
 
+    // ==================== ฟังก์ชันค้นหาแบบไม่ต้องใช้ API KEY ====================
     async function handleSearch() {
       const query = document.getElementById('search-input').value.trim();
       if (!query) return;
 
       const resultsDiv = document.getElementById('search-results');
 
-      // ตรวจสอบว่าเป็น YouTube Link หรือ Video ID 11 หลักหรือไม่
+      // 1. ตรวจสอบว่าผู้ใช้วาง Link YouTube หรือ Video ID โดยตรงหรือไม่
       const extractedId = extractYouTubeId(query) || (query.length === 11 && !query.includes(' ') ? query : null);
       if (extractedId) {
         const directSong = {
           id: extractedId,
           title: `YouTube Video (${extractedId})`,
-          artist: 'Direct Stream',
+          artist: 'เล่นจากลิงก์ตรง',
           cover: `https://img.youtube.com/vi/${extractedId}/hqdefault.jpg`
         };
         playSong(directSong);
         resultsDiv.innerHTML = `
-          <div class="p-3 bg-[#222] rounded-lg flex items-center justify-between border border-green-700/50">
+          <div class="p-3 bg-[#181818] rounded-lg flex items-center justify-between border border-green-700/50">
             <div>
               <p class="text-xs text-green-400 font-semibold">กำลังเล่นจากลิงก์โดยตรง</p>
               <p class="text-sm font-medium text-white">${directSong.title}</p>
@@ -455,33 +422,53 @@
         return;
       }
 
-      // ค้นหาผ่าน YouTube Data API v3 (ถ้ามี API Key)
-      const apiKey = localStorage.getItem('yt_api_key');
-      if (apiKey) {
-        resultsDiv.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">กำลังค้นหาใน YouTube...</p>`;
+      // 2. ค้นหาผ่าน Open Invidious API โดยไม่ต้องใช้ API Key
+      resultsDiv.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">กำลังค้นหาเพลง...</p>`;
+      
+      const publicInstances = [
+        'https://inv.tux.pizza',
+        'https://invidious.nerdvpn.de',
+        'https://inv.nadeko.net'
+      ];
+
+      let foundVideos = null;
+
+      for (let instance of publicInstances) {
         try {
-          const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=8&q=${encodeURIComponent(query)}&key=${apiKey}`);
-          const data = await res.json();
-          if (data.items && data.items.length > 0) {
-            resultsDiv.innerHTML = '';
-            data.items.forEach(item => {
-              const song = {
-                id: item.id.videoId,
-                title: item.snippet.title,
-                artist: item.snippet.channelTitle,
-                cover: item.snippet.thumbnails.medium.url
-              };
-              renderSearchItem(song, resultsDiv);
-            });
-            lucide.createIcons();
-            return;
+          const res = await fetch(`${instance}/api/v1/search?q=${encodeURIComponent(query)}&type=video`, { signal: AbortSignal.timeout(4000) });
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+              foundVideos = data;
+              break;
+            }
           }
-        } catch (err) {
-          console.error(err);
+        } catch (e) {
+          // ลอง instance ถัดไปถ้าตัวนี้ช้าหรือไม่ตอบสนอง
+          continue;
         }
       }
 
-      // ค้นหาในแคตตาล็อกภายในถ้าไม่มี API Key
+      if (foundVideos && foundVideos.length > 0) {
+        resultsDiv.innerHTML = '';
+        foundVideos.slice(0, 10).forEach(item => {
+          let thumb = `https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg`;
+          if (item.videoThumbnails && item.videoThumbnails.length > 0) {
+            thumb = item.videoThumbnails[0].url;
+          }
+          const song = {
+            id: item.videoId,
+            title: item.title,
+            artist: item.author || 'YouTube Artist',
+            cover: thumb
+          };
+          renderSearchItem(song, resultsDiv);
+        });
+        lucide.createIcons();
+        return;
+      }
+
+      // 3. Fallback: ถ้าไม่พบ ให้ค้นหาจากเพลงแนะนำภายในแอป
       const localMatches = currentSongList.filter(s => s.title.toLowerCase().includes(query.toLowerCase()) || s.artist.toLowerCase().includes(query.toLowerCase()));
       if (localMatches.length > 0) {
         resultsDiv.innerHTML = '<p class="text-xs text-gray-400 mb-2">ผลลัพธ์จากคลังเพลงแนะนำ:</p>';
@@ -489,8 +476,8 @@
       } else {
         resultsDiv.innerHTML = `
           <div class="text-center py-8">
-            <p class="text-sm text-gray-300 font-medium">ไม่พบเพลงที่ค้นหา</p>
-            <p class="text-xs text-gray-500 mt-1">แนะนำให้คัดลอก **URL จาก YouTube** มาวาง หรือใส่ YouTube API Key เพื่อค้นหาได้ทุกเพลงครับ</p>
+            <p class="text-sm text-gray-300 font-medium">ไม่พบผลการค้นหา</p>
+            <p class="text-xs text-gray-500 mt-1">คุณสามารถคัดลอกลิงก์จาก YouTube มาวางในช่องค้นหาเพื่อเล่นได้ทันทีครับ</p>
           </div>
         `;
       }
@@ -518,26 +505,9 @@
 
     function clearSearch() {
       document.getElementById('search-input').value = '';
-      document.getElementById('search-results').innerHTML = '<p class="text-xs text-gray-500 text-center py-6">พิมพ์ชื่อเพลง หรือวางลิงก์ YouTube เพื่อเริ่มค้นหา</p>';
+      document.getElementById('search-results').innerHTML = '<p class="text-xs text-gray-500 text-center py-8">พิมพ์ชื่อเพลงที่ต้องการฟัง แล้วกดปุ่มค้นหาได้เลยครับ</p>';
     }
 
-    function toggleApiKeyInput() {
-      const box = document.getElementById('api-key-container');
-      box.classList.toggle('hidden');
-      const savedKey = localStorage.getItem('yt_api_key');
-      if (savedKey) document.getElementById('yt-api-key').value = savedKey;
-    }
-
-    function saveApiKey() {
-      const val = document.getElementById('yt-api-key').value.trim();
-      if (val) {
-        localStorage.setItem('yt_api_key', val);
-        alert('บันทึก API Key สำเร็จแล้ว! ตอนนี้คุณสามารถค้นหาเพลงอะไรก็ได้บน YouTube');
-        document.getElementById('api-key-container').classList.add('hidden');
-      }
-    }
-
-    // ==================== MOOD CATEGORIES ====================
     function filterCategory(cat, btn) {
       document.querySelectorAll('.mood-chip').forEach(c => {
         c.className = "mood-chip px-3.5 py-1.5 rounded-lg text-xs font-medium bg-[#212121] text-gray-200 whitespace-nowrap transition";
@@ -552,7 +522,6 @@
       renderHomeGrids();
     }
 
-    // ==================== RENDERING UI ====================
     function renderHomeGrids() {
       const grid = document.getElementById('quick-picks-grid');
       grid.innerHTML = '';
@@ -592,7 +561,6 @@
       lucide.createIcons();
     }
 
-    // Full Player Modal Controls
     function openFullPlayer() {
       document.getElementById('full-player-modal').classList.remove('translate-y-full');
     }
@@ -600,7 +568,6 @@
       document.getElementById('full-player-modal').classList.add('translate-y-full');
     }
 
-    // Init
     renderHomeGrids();
     renderLibrary();
     lucide.createIcons();
