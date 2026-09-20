@@ -1,19 +1,29 @@
 const express = require('express');
 const cors = require('cors');
+const { Readable } = require('stream');
 const YouTube = require('youtube-sr').default;
 const youtubedl = require('youtube-dl-exec');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ป้องกันเซิร์ฟเวอร์ล่ม (Crash Shield) หมดปัญหา 502 Bad Gateway
+process.on('uncaughtException', (err) => {
+  console.error('Caught Exception:', err.message);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Rejection:', reason);
+});
+
 app.use(cors());
 app.use(express.json());
 
+// เช็คสถานะเซิร์ฟเวอร์
 app.get('/', (req, res) => {
-  res.send('Music Streaming Backend is running!');
+  res.send('Music Streaming Backend is running stably!');
 });
 
-// 1. API ค้นหาเพลง
+// 1. API ค้นหาเพลงไทยและสากล
 app.get('/api/search', async (req, res) => {
   try {
     const query = req.query.q;
@@ -30,53 +40,74 @@ app.get('/api/search', async (req, res) => {
 
     res.json(results);
   } catch (err) {
-    console.error('Search error:', err);
+    console.error('Search error:', err.message);
     res.status(500).json({ error: 'Search failed' });
   }
 });
 
-// 2. API สตรีมเสียง (ใช้ Android Client เลี่ยงบอท และรองรับทั้ง WebM / M4A)
-app.get('/api/stream', (req, res) => {
+// 2. API สตรีมเสียงสด (Hybrid Streaming ไม่ติดบล็อก Data Center IP)
+app.get('/api/stream', async (req, res) => {
   const videoId = req.query.id;
   if (!videoId) return res.status(400).send('Missing video ID');
 
-  const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-  console.log(`[Stream Request] Starting stream for: ${videoId}`);
+  console.log(`[Stream] Requesting audio for: ${videoId}`);
 
-  // รองรับ audio/mp4 และ audio/webm
-  res.setHeader('Content-Type', 'audio/mp4');
-  res.setHeader('Transfer-Encoding', 'chunked');
-  res.setHeader('Accept-Ranges', 'bytes');
+  // โหนด Invidious Relay สำหรับดึงเสียงโดยตรงไม่ติดบล็อก Data Center
+  const relayHosts = [
+    'https://inv.nadeko.net',
+    'https://invidious.nerdvpn.de',
+    'https://inv.tux.pizza'
+  ];
 
-  // เรียกใช้ yt-dlp พร้อม flags พิเศษสำหรับ Server
-  const subprocess = youtubedl.exec(videoUrl, {
-    format: '140/bestaudio[ext=m4a]/bestaudio', // ดึง m4a ซึ่งเสถียรที่สุดในเบราว์เซอร์
-    output: '-',
-    extractorArgs: 'youtube:player_client=android', // ป้องกันการตรวจจับบอทบน Cloud IP
-    noCheckCertificates: true,
-    noWarnings: true
-  });
-
-  if (subprocess.stdout) {
-    subprocess.stdout.pipe(res);
-  }
-
-  // ดักจับ Log เพื่อเช็คปัญหาใน Render Logs
-  if (subprocess.stderr) {
-    subprocess.stderr.on('data', (data) => {
-      console.error(`yt-dlp stderr: ${data.toString()}`);
-    });
-  }
-
-  req.on('close', () => {
+  // วิธีที่ 1: ดึง Stream ตรงผ่าน Relay Relay
+  for (const host of relayHosts) {
     try {
-      subprocess.kill();
-    } catch (e) {}
-  });
+      const streamUrl = `${host}/latest_version?id=${videoId}&itag=140`;
+      const streamRes = await fetch(streamUrl, { 
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+        signal: AbortSignal.timeout(6000) 
+      });
 
-  subprocess.on('error', (err) => {
-    console.error('Subprocess error:', err);
-  });
+      if (streamRes.ok && streamRes.body) {
+        res.setHeader('Content-Type', 'audio/mp4');
+        res.setHeader('Transfer-Encoding', 'chunked');
+        Readable.fromWeb(streamRes.body).pipe(res);
+        return;
+      }
+    } catch (e) {
+      console.warn(`Host ${host} failed, trying next...`);
+    }
+  }
+
+  // วิธีที่ 2: ดึงผ่าน yt-dlp พร้อมระบบดัก Error ปลอดภัย
+  try {
+    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    const subprocess = youtubedl.exec(videoUrl, {
+      format: 'bestaudio',
+      output: '-',
+      extractorArgs: 'youtube:player_client=android',
+      noCheckCertificates: true,
+      noWarnings: true
+    });
+
+    subprocess.catch((err) => {
+      console.error('yt-dlp fallback error:', err.message);
+      if (!res.headersSent) res.status(500).send('Stream error');
+    });
+
+    if (subprocess.stdout) {
+      res.setHeader('Content-Type', 'audio/webm');
+      subprocess.stdout.pipe(res);
+    }
+
+    req.on('close', () => {
+      try { subprocess.kill(); } catch (e) {}
+    });
+
+  } catch (err) {
+    console.error('Final stream fallback error:', err.message);
+    if (!res.headersSent) res.status(500).send('Unable to stream this track');
+  }
 });
 
 app.listen(PORT, () => {
